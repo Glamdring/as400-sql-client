@@ -8,18 +8,18 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.ibm.as400.access.AS400JDBCDriver;
 
 import de.vandermeer.asciitable.AsciiTable;
-import de.vandermeer.skb.interfaces.document.TableRowStyle;
 
 @SpringBootApplication
 public class AS400SQLClient {
-
+    
     public static void main(String[] args) throws Exception {
         
         if (args.length != 3) {
@@ -38,42 +38,41 @@ public class AS400SQLClient {
         Connection connection = DriverManager.getConnection(connectionString, username, password);
         Statement statement = connection.createStatement();
         
-        System.out.println("Connected to the database. Type your queries");
+        System.out.println("Connected to the target server. Type your queries");
         System.out.println();
         
-        try (Scanner scanner = new Scanner(System.in)) {
-            while (true) {
-                System.out.print("> ");
-                try {
-                    String query = scanner.nextLine();
-                    if (query.equals("quit")) {
-                        break;
-                    } else if (query.toLowerCase().startsWith("select")) {
-                        ResultSet rs = statement.executeQuery(query);
-                        AsciiTable table = new AsciiTable();
-                        List<String> columns = new ArrayList<>();
-                        ResultSetMetaData meta = rs.getMetaData(); 
-                        for (int i = 1; i <= meta.getColumnCount(); i ++) {
-                            columns.add(meta.getColumnName(i) + " (" + meta.getColumnType(i) + ")");
-                        }
-                        table.addRow(columns);
-                        
-                        while (rs.next()) {
-                            List<String> row = new ArrayList<>();
-                            for (int i = 1; i <= meta.getColumnCount(); i ++) {
-                                row.add(String.valueOf(rs.getObject(i)));
-                            }
-                            table.addRow(row);
-                        }
-                        table.getContext().setWidth(columns.size() * 15);
-                        System.out.println(table.render());
-                    } else {
-                        int affected = statement.executeUpdate(query);
-                        System.out.println("Query executed, affected rows: " + affected);
+        LineReader lineReader = LineReaderBuilder.builder().build();
+        while (true) {
+            System.out.print("> ");
+            try {
+                String query = lineReader.readLine();
+                if (query.equals("quit")) {
+                    break;
+                } else if (query.toLowerCase().startsWith("select")) {
+                    ResultSet rs = statement.executeQuery(query);
+                    AsciiTable table = new AsciiTable();
+                    List<String> columns = new ArrayList<>();
+                    ResultSetMetaData meta = rs.getMetaData(); 
+                    for (int i = 1; i <= meta.getColumnCount(); i ++) {
+                        columns.add(meta.getColumnName(i) + " (" + meta.getColumnType(i) + ")");
                     }
-                } catch (SQLException ex) {
-                    System.out.println("Failed to execute query:" + ex.getMessage());
+                    table.addRow(columns);
+                    
+                    while (rs.next()) {
+                        List<String> row = new ArrayList<>();
+                        for (int i = 1; i <= meta.getColumnCount(); i ++) {
+                            row.add(String.valueOf(rs.getObject(i)));
+                        }
+                        table.addRow(row);
+                    }
+                    table.getContext().setWidth(columns.size() * 15);
+                    System.out.println(table.render());
+                } else {
+                    int affected = statement.executeUpdate(query);
+                    System.out.println("Query executed, affected rows: " + affected);
                 }
+            } catch (SQLException ex) {
+                System.out.println("Failed to execute query:" + ex.getMessage());
             }
         }
     }

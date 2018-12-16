@@ -35,6 +35,12 @@
 			<artifactId>asciitable</artifactId>
 			<version>0.3.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jline</groupId>
+			<artifactId>jline</artifactId>
+			<version>3.9.0</version>
+		</dependency>
+
 		<!-- IBM i 7+ -->
 		<dependency>
 			<groupId>net.sf.jt400</groupId>
