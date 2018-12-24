@@ -22,18 +22,22 @@ public class AS400SQLClient {
     
     public static void main(String[] args) throws Exception {
         
-        if (args.length != 3) {
-            System.out.println("Usage: java -jar as400-sql-client.jar <connectionString> <username> <password>");
+        if (args.length != 2) {
+            System.out.println("Usage: java -jar as400-sql-client.jar <connectionString> <username>");
             System.exit(0);
         }
 
+        LineReader lineReader = LineReaderBuilder.builder().build();
+        
+        System.out.print("Password: ");
+        String password = lineReader.readLine('0');
+        
         DriverManager.registerDriver(new AS400JDBCDriver());
         
         String connectionString = args[0];
         String username = args[1];
-        String password = args[2];
         
-        System.out.println("Trying to connect to " + connectionString + " with credentials: " + username + ":" + password);
+        System.out.println("Trying to connect to " + connectionString + " with username: " + username);
         
         Connection connection = DriverManager.getConnection(connectionString, username, password);
         Statement statement = connection.createStatement();
@@ -41,7 +45,6 @@ public class AS400SQLClient {
         System.out.println("Connected to the target server. Type your queries");
         System.out.println();
         
-        LineReader lineReader = LineReaderBuilder.builder().build();
         while (true) {
             System.out.print("> ");
             try {
