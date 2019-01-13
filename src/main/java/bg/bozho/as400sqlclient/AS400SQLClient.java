@@ -64,7 +64,16 @@ public class AS400SQLClient {
                     while (rs.next()) {
                         List<String> row = new ArrayList<>();
                         for (int i = 1; i <= meta.getColumnCount(); i ++) {
-                            row.add(String.valueOf(rs.getObject(i)));
+                            Object obj = rs.getObject(i);
+                            if (obj instanceof byte[]) {
+                                if (((byte[]) obj).length > 300) {
+                                    row.add("LOB");
+                                } else {
+                                    row.add(new String((byte[]) obj));
+                                }
+                            } else {
+                                row.add(String.valueOf(obj));
+                            }
                         }
                         table.addRow(row);
                     }
